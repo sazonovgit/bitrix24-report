@@ -1,0 +1,4 @@
+b24pysdk>=1.2.1
+customtkinter>=5.2.2
+openpyxl>=3.1.5
+pytest>=8.3.0

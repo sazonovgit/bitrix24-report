@@ -1,0 +1,12 @@
+{
+  "fields": {
+    "id": {"type": "integer", "title": "ID"},
+    "title": {"type": "string", "title": "Название"},
+    "ufCrm7PricePo2026": {"type": "money", "title": "ЦЕНА ПО 2026"},
+    "ufCrm7PriceImpl2026": {"type": "money", "title": "ЦЕНА ВНЕДРЕНИЯ (2026)"},
+    "ufCrm7Amount2026": {"type": "money", "title": "СУММА (2026)"},
+    "ufCrm7PricePo2025": {"type": "money", "title": "Цена по 2025"},
+    "ufCrm7PriceImpl2025": {"type": "money", "title": "Цена внедрения 2025"},
+    "ufCrm7Amount2025": {"type": "money", "title": "Сумма (2025)"}
+  }
+}

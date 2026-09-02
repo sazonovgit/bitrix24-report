@@ -1,0 +1,84 @@
+{
+  "modules": [
+    {
+      "id": 1,
+      "title": "Модуль \"Витрина данных ГИСОГД\"",
+      "ufCrm7PricePo2026": "3000000",
+      "ufCrm7PriceImpl2026": "450000",
+      "ufCrm7Amount2026": "3450000"
+    },
+    {
+      "id": 2,
+      "title": "Модуль \"API для взаимодействия с внешними системами\"",
+      "ufCrm7PricePo2026": "1400000",
+      "ufCrm7PriceImpl2026": "",
+      "ufCrm7Amount2026": "1400000"
+    }
+  ],
+  "planned": [
+    {
+      "id": 11,
+      "title": "План 1",
+      "parentId128": 1,
+      "parentId2": 805,
+      "companyId": 20,
+      "ufCrm9PricePo2026": "4000000",
+      "ufCrm9PriceImpl2026": "450000",
+      "ufCrm9Amount2026": "4450000"
+    },
+    {
+      "id": 12,
+      "title": "План без компании",
+      "parentId128": 1,
+      "companyId": "",
+      "ufCrm9PricePo2026": "1",
+      "ufCrm9Amount2026": "1"
+    },
+    {
+      "id": 13,
+      "title": "План выигран",
+      "parentId128": 2,
+      "parentId2": 950,
+      "companyId": 21,
+      "ufCrm9PricePo2026": "",
+      "ufCrm9PriceImpl2026": "",
+      "ufCrm9Amount2026": ""
+    }
+  ],
+  "actual": [
+    {
+      "id": 31,
+      "title": "Факт 1",
+      "parentId128": 1,
+      "parentId2": 479,
+      "companyId": 22,
+      "ufCrm9PricePo2026": "3000000",
+      "ufCrm9PriceImpl2026": "450000",
+      "ufCrm9Amount2026": "3450000"
+    },
+    {
+      "id": 32,
+      "title": "Факт без сделки",
+      "parentId128": 1,
+      "companyId": 23,
+      "ufCrm9PricePo2026": "3000000",
+      "ufCrm9PriceImpl2026": "200000",
+      "ufCrm9Amount2026": "3200000"
+    }
+  ],
+  "companies": {
+    "20": {"id": 20, "title": "Республика Коми"},
+    "21": {"id": 21, "title": "Хабаровский край"},
+    "22": {"id": 22, "title": "Курганская область"},
+    "23": {"id": 23, "title": "Амурская область"}
+  },
+  "deals": {
+    "805": {"id": 805, "title": "Сделка план", "stageId": "NEW", "year": 2026},
+    "950": {"id": 950, "title": "Сделка факт", "stageId": "WON_CUSTOM", "year": 2026},
+    "479": {"id": 479, "title": "Сделка факт 2", "stageId": "NEW", "year": 2026}
+  },
+  "stages": {
+    "NEW": "В работе",
+    "WON_CUSTOM": "Выиграли закупку"
+  }
+}

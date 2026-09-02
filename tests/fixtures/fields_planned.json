@@ -1,0 +1,12 @@
+{
+  "fields": {
+    "id": {"type": "integer", "title": "ID"},
+    "title": {"type": "string", "title": "Название"},
+    "parentId128": {"type": "crm", "title": "Модули"},
+    "parentId2": {"type": "crm", "title": "Сделка"},
+    "companyId": {"type": "crm_company", "title": "Компания"},
+    "ufCrm9PricePo2026": {"type": "money", "title": "ЦЕНА ПО 2026"},
+    "ufCrm9PriceImpl2026": {"type": "money", "title": "ЦЕНА ВНЕДРЕНИЯ (2026)"},
+    "ufCrm9Amount2026": {"type": "money", "title": "СУММА (2026)"}
+  }
+}

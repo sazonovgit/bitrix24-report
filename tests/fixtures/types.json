@@ -1,0 +1,19 @@
+{
+  "types": [
+    {
+      "id": 7,
+      "entityTypeId": 128,
+      "title": "Модули"
+    },
+    {
+      "id": 9,
+      "entityTypeId": 140,
+      "title": "Планируемые продажи"
+    },
+    {
+      "id": 10,
+      "entityTypeId": 142,
+      "title": "Фактические продажи"
+    }
+  ]
+}
