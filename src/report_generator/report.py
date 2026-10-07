@@ -14,10 +14,17 @@ from report_generator.bitrix import (
     as_int,
     pick,
 )
-from report_generator.mapping import PortalSchema, EntityMap, ensure_year_fields, normalize_title
+from report_generator.mapping import (
+    PortalSchema,
+    EntityMap,
+    effective_price_fields,
+    ensure_year_fields,
+    normalize_title,
+)
 from report_generator.models import (
     FACT_LABEL,
     PLAN_LABEL,
+    EXCLUDED_DEAL_STAGE_NAME,
     WON_STAGE_NAME,
     ReportRow,
     YearPriceFields,
@@ -164,6 +171,14 @@ def _stage_name(deal: dict[str, Any] | None, stages: dict[str, str]) -> str | No
     return stages.get(stage_id) or stages.get(stage_id.upper()) or stage_id
 
 
+def deal_stage_excluded(deal: dict[str, Any] | None, stages: dict[str, str]) -> bool:
+    stage_name = _stage_name(deal, stages)
+    if not stage_name:
+        return False
+    excluded = normalize_title(EXCLUDED_DEAL_STAGE_NAME)
+    return normalize_title(stage_name) == excluded
+
+
 def sale_to_row(
     *,
     sale: dict[str, Any],
@@ -201,18 +216,26 @@ def sale_to_row(
     deal = deals.get(deal_id)
     if not deal_matches_year(deal, year, deal_year_field):
         return None
+    if deal_stage_excluded(deal, stages):
+        return None
     plan_fact = classify_plan_fact(source, _stage_name(deal, stages))
+
+    deal_name = str(pick(deal, "title", "TITLE", default="") or "")
+    deal_name = " ".join(deal_name.replace("\r", " ").replace("\n", " ").split())
+    if not deal_name:
+        deal_name = f"Сделка {deal_id}"
 
     price_po, price_impl, amount = coalesce_prices(
         sale,
         module,
-        entity.prices_for(year),
+        effective_price_fields(entity, year),
         module_prices,
     )
     return ReportRow(
         title=title,
         year=year,
         deal_id=deal_id,
+        deal_name=deal_name,
         company=company_name,
         price_po=price_po,
         price_impl=price_impl,
@@ -254,7 +277,7 @@ def build_rows_from_loaded(
     stages: dict[str, str],
 ) -> list[ReportRow]:
     rows: list[ReportRow] = []
-    module_prices = schema.modules.prices_for(year)
+    module_prices = effective_price_fields(schema.modules, year)
     for sale in actual:
         row = sale_to_row(
             sale=sale,

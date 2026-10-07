@@ -1,6 +1,7 @@
 from report_generator.bitrix import BitrixClientError, parse_webhook_url
 from report_generator.mapping import (
     EntityMap,
+    effective_price_fields,
     find_type,
     match_deal_year_field,
     match_year_fields,
@@ -75,3 +76,14 @@ def test_entity_map_year_roundtrip():
     entity.set_prices(2026, prices)
     loaded = entity.prices_for(2026)
     assert loaded.price_po == "ufCrm9PricePo2026"
+
+
+def test_effective_price_fields_uses_2026_po_impl_and_amount():
+    fields = load_json("fields_modules.json")["fields"]
+    entity = EntityMap(entity_type_id=128, title="Модули")
+    entity.set_prices(2026, match_year_fields(fields, 2026))
+    entity.set_prices(2025, match_year_fields(fields, 2025))
+    eff = effective_price_fields(entity, 2025)
+    assert eff.price_po == "ufCrm7PricePo2026"
+    assert eff.price_impl == "ufCrm7PriceImpl2026"
+    assert eff.amount == "ufCrm7Amount2026"

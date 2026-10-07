@@ -16,7 +16,7 @@ from report_generator.bitrix import (
     pick,
 )
 from report_generator.config import mapping_path
-from report_generator.models import YearPriceFields
+from report_generator.models import FIXED_PRICE_YEAR, YearPriceFields
 
 
 TYPE_TITLES = {
@@ -302,7 +302,19 @@ def _fill_entity(
         company_field=relations["company"],
     )
     entity.set_prices(year, prices)
+    if year != FIXED_PRICE_YEAR:
+        entity.set_prices(FIXED_PRICE_YEAR, match_year_fields(fields, FIXED_PRICE_YEAR))
     return entity
+
+
+def effective_price_fields(entity: EntityMap, _report_year: int) -> YearPriceFields:
+    """Цена ПО, внедрение и сумма — всегда FIXED_PRICE_YEAR."""
+    fixed = entity.prices_for(FIXED_PRICE_YEAR)
+    return YearPriceFields(
+        price_po=fixed.price_po,
+        price_impl=fixed.price_impl,
+        amount=fixed.amount,
+    )
 
 
 def discover_schema(client: BitrixClient, year: int, *, force: bool = False) -> PortalSchema:
@@ -329,7 +341,9 @@ def discover_schema(client: BitrixClient, year: int, *, force: bool = False) -> 
         for entity in (schema.modules, schema.planned, schema.actual):
             if not entity.entity_type_id:
                 continue
-            if entity.prices_for(year).price_po and entity.prices_for(year).amount:
+            fixed = entity.prices_for(FIXED_PRICE_YEAR)
+            fixed_ok = bool(fixed.price_po and fixed.price_impl and fixed.amount)
+            if fixed_ok:
                 continue
             fields = client.item_fields(entity.entity_type_id)
             if not entity.module_field or not entity.company_field:
@@ -337,7 +351,7 @@ def discover_schema(client: BitrixClient, year: int, *, force: bool = False) -> 
                 entity.module_field = entity.module_field or relations["module"]
                 entity.deal_field = entity.deal_field or relations["deal"]
                 entity.company_field = entity.company_field or relations["company"]
-            entity.set_prices(year, match_year_fields(fields, year))
+            entity.set_prices(FIXED_PRICE_YEAR, match_year_fields(fields, FIXED_PRICE_YEAR))
 
     if not schema.planned.entity_type_id and not schema.actual.entity_type_id:
         raise BitrixClientError(
@@ -354,16 +368,24 @@ def discover_schema(client: BitrixClient, year: int, *, force: bool = False) -> 
 
 
 def ensure_year_fields(schema: PortalSchema, year: int) -> None:
-    sources: list[str] = []
+    fixed_sources: list[str] = []
+    amount_sources: list[str] = []
     for entity in (schema.planned, schema.actual, schema.modules):
         if not entity.entity_type_id:
             continue
-        missing = entity.prices_for(year).missing()
-        if len(missing) < 3:
-            return
-        sources.append(entity.title or str(entity.entity_type_id))
-    raise BitrixClientError(
-        f"Не найдены поля цен за {year} год "
-        f"(цена по, цена внедрения, сумма) в: {', '.join(sources) or 'смарт-процессах'}. "
-        "Нажмите «Обновить схему полей» в настройках."
-    )
+        label = entity.title or str(entity.entity_type_id)
+        fixed = entity.prices_for(FIXED_PRICE_YEAR)
+        if not fixed.price_po or not fixed.price_impl:
+            fixed_sources.append(label)
+        if not fixed.amount:
+            amount_sources.append(label)
+    if fixed_sources:
+        raise BitrixClientError(
+            f"Не найдены поля «цена по {FIXED_PRICE_YEAR}» и «цена внедрения ({FIXED_PRICE_YEAR})» "
+            f"в: {', '.join(fixed_sources)}. Нажмите «Обновить схему полей» в настройках."
+        )
+    if amount_sources:
+        raise BitrixClientError(
+            f"Не найдено поле «сумма ({FIXED_PRICE_YEAR})» в: {', '.join(amount_sources)}. "
+            "Нажмите «Обновить схему полей» в настройках."
+        )

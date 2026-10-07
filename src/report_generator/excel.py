@@ -10,6 +10,7 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.worksheet import Worksheet
 
+from report_generator.bitrix import deal_details_url
 from report_generator.config import COLUMN_KEYS
 from report_generator.models import MONEY_COLUMNS, ReportRow, column_header
 
@@ -17,6 +18,7 @@ from report_generator.models import MONEY_COLUMNS, ReportRow, column_header
 HEADER_FILL = PatternFill("solid", fgColor="1F4E79")
 HEADER_FONT = Font(name="Calibri", bold=True, color="FFFFFF", size=11)
 BODY_FONT = Font(name="Calibri", size=11)
+LINK_FONT = Font(name="Calibri", size=11, color="0563C1", underline="single")
 THIN = Border(
     left=Side(style="thin", color="BDD7EE"),
     right=Side(style="thin", color="BDD7EE"),
@@ -51,12 +53,25 @@ def _autosize(sheet: Worksheet, columns: list[str]) -> None:
         sheet.column_dimensions[letter].width = width
 
 
+def _apply_deal_name_cell(cell, row: ReportRow, portal_domain: str) -> None:
+    cell.value = row.deal_name or None
+    url = ""
+    if row.deal_id and portal_domain:
+        url = deal_details_url(portal_domain, int(row.deal_id))
+    if url:
+        cell.hyperlink = url
+        cell.font = LINK_FONT
+    else:
+        cell.font = BODY_FONT
+
+
 def write_report(
     path: Path,
     rows: list[ReportRow],
     *,
     year: int,
     columns: list[str] | None = None,
+    portal_domain: str = "",
 ) -> Path:
     selected = [key for key in (columns or list(COLUMN_KEYS)) if key in COLUMN_KEYS]
     if not selected:
@@ -83,8 +98,12 @@ def write_report(
     for row_index, row in enumerate(rows, start=2):
         fill = FACT_FILL if row.plan_fact == "Факт" else PLAN_FILL
         for col, key in enumerate(selected, start=1):
-            cell = sheet.cell(row_index, col, _cell_value(row, key))
-            cell.font = BODY_FONT
+            if key == "deal_name":
+                cell = sheet.cell(row_index, col)
+                _apply_deal_name_cell(cell, row, portal_domain)
+            else:
+                cell = sheet.cell(row_index, col, _cell_value(row, key))
+                cell.font = BODY_FONT
             cell.border = THIN
             cell.fill = fill
             if key in MONEY_COLUMNS:
@@ -92,6 +111,8 @@ def write_report(
                 cell.alignment = Alignment(horizontal="right")
             elif key in {"year", "deal_id"}:
                 cell.alignment = Alignment(horizontal="center")
+            elif key == "deal_name":
+                cell.alignment = Alignment(vertical="center", wrap_text=True)
             else:
                 cell.alignment = Alignment(vertical="center", wrap_text=key == "title")
 

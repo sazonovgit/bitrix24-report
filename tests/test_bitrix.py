@@ -2,7 +2,15 @@ from report_generator.bitrix import (
     BitrixClient,
     COMPANY_ENTITY_TYPE_ID,
     coerce_next,
+    deal_details_url,
 )
+
+
+def test_deal_details_url():
+    assert deal_details_url("portal.bitrix24.ru", 479) == (
+        "https://portal.bitrix24.ru/crm/deal/details/479/"
+    )
+    assert deal_details_url("", 1) == ""
 
 
 def test_coerce_next():

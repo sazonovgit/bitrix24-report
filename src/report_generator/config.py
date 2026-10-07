@@ -14,6 +14,7 @@ COLUMN_KEYS = (
     "title",
     "year",
     "deal_id",
+    "deal_name",
     "company",
     "price_po",
     "price_impl",

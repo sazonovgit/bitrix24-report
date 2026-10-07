@@ -7,13 +7,17 @@ from decimal import Decimal
 
 
 WON_STAGE_NAME = "Выиграли закупку"
+EXCLUDED_DEAL_STAGE_NAME = "ПРОБЛЕМЫ С ЗАКУПКОЙ / ОТКАЗ ОТ ПУБЛИКАЦИИ"
 PLAN_LABEL = "План"
 FACT_LABEL = "Факт"
+# Колонки «ЦЕНА ПО», «ЦЕНА ВНЕДРЕНИЯ» и «СУММА» всегда из полей этого года в Битрикс24.
+FIXED_PRICE_YEAR = 2026
 
 COLUMN_HEADERS = {
     "title": "Название",
     "year": "Год",
     "deal_id": "Сделка",
+    "deal_name": "Название сделки",
     "company": "Компания",
     "price_po": "ЦЕНА ПО {year}",
     "price_impl": "ЦЕНА ВНЕДРЕНИЯ ({year})",
@@ -25,6 +29,7 @@ COLUMN_LABELS = {
     "title": "Название",
     "year": "Год",
     "deal_id": "Сделка",
+    "deal_name": "Название сделки",
     "company": "Компания",
     "price_po": "Цена ПО",
     "price_impl": "Цена внедрения",
@@ -57,6 +62,7 @@ class ReportRow:
     title: str
     year: int
     deal_id: int | None
+    deal_name: str
     company: str
     price_po: Decimal | None
     price_impl: Decimal | None
@@ -67,6 +73,13 @@ class ReportRow:
         return getattr(self, key)
 
 
+def column_header_year(key: str, report_year: int) -> int:
+    if key in ("price_po", "price_impl", "amount"):
+        return FIXED_PRICE_YEAR
+    return report_year
+
+
 def column_header(key: str, year: int) -> str:
     template = COLUMN_HEADERS[key]
-    return template.format(year=year)
+    header_year = column_header_year(key, year)
+    return template.format(year=header_year)

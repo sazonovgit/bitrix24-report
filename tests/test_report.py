@@ -83,6 +83,7 @@ def test_build_rows_plan_fact_and_prices():
     komi = by_company["Республика Коми"]
     assert komi.plan_fact == PLAN_LABEL
     assert komi.deal_id == 805
+    assert komi.deal_name == "Сделка план"
     assert komi.price_po == Decimal("4000000")
     assert komi.amount == Decimal("4450000")
 
@@ -105,6 +106,7 @@ def test_dedupe_prefers_fact_for_same_deal():
         title='Модуль "Витрина данных ГИСОГД"',
         year=2026,
         deal_id=139,
+        deal_name="Сделка 139",
         company="Архангельская область",
         price_po=Decimal("3000000"),
         price_impl=Decimal("450000"),
@@ -115,6 +117,7 @@ def test_dedupe_prefers_fact_for_same_deal():
         title='Модуль "Витрина данных ГИСОГД"',
         year=2026,
         deal_id=139,
+        deal_name="Сделка 139",
         company="Архангельская область",
         price_po=Decimal("3000000"),
         price_impl=Decimal("450000"),
@@ -125,6 +128,7 @@ def test_dedupe_prefers_fact_for_same_deal():
         title='Модуль "Витрина данных ГИСОГД"',
         year=2026,
         deal_id=148,
+        deal_name="Сделка 148",
         company="Хабаровский край",
         price_po=Decimal("3000000"),
         price_impl=Decimal("450000"),
@@ -143,6 +147,7 @@ def test_dedupe_collapses_identical_fact_rows():
         title='Модуль "Реестровые записи"',
         year=2026,
         deal_id=130,
+        deal_name="Сделка 130",
         company="ЯНАО",
         price_po=Decimal("10600000"),
         price_impl=Decimal("1800000"),
@@ -153,6 +158,7 @@ def test_dedupe_collapses_identical_fact_rows():
         title='Модуль «Реестровые записи»\n',
         year=2026,
         deal_id=130,
+        deal_name="Сделка 130",
         company="ЯНАО",
         price_po=Decimal("10600000"),
         price_impl=Decimal("1800000"),
@@ -202,6 +208,25 @@ def test_parse_year_value():
     assert parse_year_value("2026") == 2026
     assert parse_year_value("2025-03-01T00:00:00") == 2025
     assert parse_year_value("") is None
+
+
+def test_excludes_deals_with_problem_purchase_stage():
+    data, modules, companies, deals = _loaded()
+    deals = dict(deals)
+    deals[805] = {**deals[805], "stageId": "PROBLEM"}
+    stages = {**data["stages"], "PROBLEM": "ПРОБЛЕМЫ С ЗАКУПКОЙ / ОТКАЗ ОТ ПУБЛИКАЦИИ"}
+    rows = build_rows_from_loaded(
+        year=2026,
+        schema=_schema(),
+        modules=modules,
+        planned=data["planned"],
+        actual=data["actual"],
+        companies=companies,
+        deals=deals,
+        stages=stages,
+    )
+    assert 805 not in {row.deal_id for row in rows}
+    assert {row.deal_id for row in rows} == {950, 479}
 
 
 def test_only_deals_of_selected_year():

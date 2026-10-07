@@ -387,6 +387,7 @@ class App(ctk.CTk):
                     rows,
                     year=cfg.year,
                     columns=cfg.columns,
+                    portal_domain=client.domain,
                 )
             except BitrixClientError as exc:
                 message = str(exc)

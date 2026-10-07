@@ -46,6 +46,13 @@ def parse_webhook_url(url: str) -> tuple[str, str]:
     )
 
 
+def deal_details_url(domain: str, deal_id: int) -> str:
+    host = (domain or "").strip().rstrip("/")
+    if not host:
+        return ""
+    return f"https://{host}/crm/deal/details/{deal_id}/"
+
+
 def _norm_key(key: str) -> str:
     return str(key).lower().replace("_", "")
 
